@@ -1,0 +1,19 @@
+# Core packages
+numpy
+pandas
+scikit-learn
+joblib
+
+# Machine Learning models
+xgboost
+
+# Streamlit dashboard
+streamlit
+
+# Plotting / Visualization
+plotly
+matplotlib
+seaborn
+
+# Optional / Utilities
+pillow
