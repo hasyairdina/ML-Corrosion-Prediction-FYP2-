@@ -1,0 +1,66 @@
+# import pandas as pd
+# import numpy as np
+#
+# def prepare_features(df, model=None):   # <-- add model as optional argument
+#
+#     df['Stress_Index'] = df['max_pressure_psi'] / (df['thickness_mm'] / df['pipe_size_mm'])
+#
+#     # --- 1. Handle one-hot encoding for 'material'
+#     materials = ['carbon steel', 'fiberglass', 'hdpe', 'pvc', 'stainless steel']
+#     for mat in materials:
+#         col_name = f"material_{mat}"
+#         df[col_name] = (df['material'].str.lower() == mat).astype(int)
+#
+#     # --- 2. Derived / engineered features
+#     df['loss_ratio'] = df['material_loss_percent'] / (df['corrosion_impact_percent'] + 1e-6)
+#     df['normalized_thickness'] = df['thickness_mm'] / df['pipe_size_mm_tf']
+#
+#     # --- 3. Material risk index
+#     risk_map = {
+#         'material_carbon steel': 3,       # High risk
+#         'material_fiberglass': 0,         # Very low risk
+#         'material_hdpe': 0,               # Very low risk
+#         'material_pvc': 0,                # Very low risk
+#         'material_stainless steel': 1     # Low risk
+#     }
+#     df['material_risk_index'] = sum(df[col] * risk for col, risk in risk_map.items())
+#
+#     # --- 4. Interaction and ratio features
+#     df['pressure_stress_interaction'] = df['max_pressure_psi'] * df['Stress_Index']
+#     df['size_pressure_index'] = df['pipe_size_mm_tf'] * df['max_pressure_psi']
+#     df['pressure_to_thickness'] = df['max_pressure_psi'] / df['thickness_mm']
+#     df['pressure_to_size'] = df['max_pressure_psi'] / df['pipe_size_mm_tf']
+#     df['thickness_decay_ratio'] = df['thickness_mm'] / df['time_years']
+#     df['pressure_temp_interaction'] = df['max_pressure_psi'] * df['temperature_c']
+#     df['Operational_Stress_Age'] = df['max_pressure_psi'] * df['time_years']
+#
+#     # --- 5. Age group binning
+#     bins = [0, 5, 10, 15, 20, 25, float('inf')]
+#     labels = ['1–5 years', '6–10 years', '11–15 years', '16–20 years', '21–25 years', '25+ years']
+#     df['age_group'] = pd.cut(df['time_years'], bins=bins, labels=labels, right=True)
+#     age_group_encoded = pd.get_dummies(df['age_group'], prefix='age_group').astype(int)
+#     df = pd.concat([df, age_group_encoded], axis=1)
+#
+#     # --- 6. Fill any missing engineered columns (to match model input)
+#     expected_cols = [
+#         'loss_ratio', 'normalized_thickness', 'material_risk_index',
+#         'pressure_stress_interaction', 'size_pressure_index', 'pressure_to_thickness',
+#         'pressure_to_size', 'thickness_decay_ratio', 'pressure_temp_interaction',
+#         'Operational_Stress_Age',
+#         'age_group_1–5 years', 'age_group_6–10 years', 'age_group_11–15 years',
+#         'age_group_16–20 years', 'age_group_21–25 years', 'age_group_25+ years'
+#     ]
+#     for col in expected_cols:
+#         if col not in df.columns:
+#             df[col] = 0
+#
+#     # --- 7. Align with model input features (NEW) ---
+#     if model is not None and hasattr(model, "feature_names_in_"):
+#         # Add any missing model columns
+#         for col in model.feature_names_in_:
+#             if col not in df.columns:
+#                 df[col] = 0
+#         # Drop any extra columns not used by model
+#         df = df[[col for col in model.feature_names_in_ if col in df.columns]]
+#
+#     return df

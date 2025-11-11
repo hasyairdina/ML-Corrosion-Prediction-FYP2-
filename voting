@@ -1,0 +1,105 @@
+# ===== ENSEMBLE MODEL =====
+from sklearn.ensemble import VotingClassifier, RandomForestClassifier
+from sklearn.svm import SVC
+
+# Reuse the tuned XGBoost from above
+xgb_best = best_xgb_model
+
+# Other base learners
+rf_model = RandomForestClassifier(n_estimators=200, random_state=42)
+svm_model = SVC(kernel='rbf', probability=True, random_state=42)
+
+# Voting Classifier (Soft voting)
+voting_clf = VotingClassifier(
+    estimators=[('xgb', xgb_best), ('rf', rf_model), ('svm', svm_model)],
+    voting='soft'
+)
+
+# Fit ensemble
+voting_clf.fit(x_train, y_train)
+
+# Predict
+y_pred_vote = voting_clf.predict(x_test)
+
+# Store results
+ensemble_results = {
+    "Best XGB Params": grid_xgb.best_params_,
+    "Accuracy": accuracy_score(y_test, y_pred_vote),
+    "F1 Macro": f1_score(y_test, y_pred_vote, average='macro'),
+    "Report": classification_report(y_test, y_pred_vote, target_names=['Normal', 'Moderate', 'Critical']),
+    "Confusion Matrix": confusion_matrix(y_test, y_pred_vote)
+}
+
+# Display
+print("=== ENSEMBLE (VotingClassifier) RESULTS ===")
+print("Best XGB Parameters:", ensemble_results["Best XGB Params"])
+print(f"Accuracy: {ensemble_results['Accuracy']:.3f}")
+print(f"F1 Macro: {ensemble_results['F1 Macro']:.3f}")
+print("\nClassification Report:\n", ensemble_results["Report"])
+print("Confusion Matrix:\n", ensemble_results["Confusion Matrix"])
+
+# ===== CROSS-VALIDATION (ENSEMBLE MODEL) =====
+from sklearn.model_selection import cross_val_score
+
+cv_acc_ensemble = cross_val_score(voting_clf, input_data, output_data, cv=5, scoring='accuracy')
+cv_f1_ensemble = cross_val_score(voting_clf, input_data, output_data, cv=5, scoring='f1_macro')
+
+print("\n=== CROSS VALIDATION (VotingClassifier Ensemble) ===")
+print("CV Accuracy:", cv_acc_ensemble)
+print("Mean CV Accuracy:", cv_acc_ensemble.mean())
+print("CV F1 Macro:", cv_f1_ensemble)
+print("Mean CV F1 Macro:", cv_f1_ensemble.mean())
+
+---------------------------------------------------------------------------------------------------------------------------------
+"""
+params = {
+    'max_depth': [4, 6, 8],
+    'learning_rate': [0.05, 0.1, 0.2],
+    'n_estimators': [100, 200, 300],
+    'subsample': [0.7, 0.8, 1.0],
+    'colsample_bytree': [0.7, 0.8, 1.0],
+    'gamma': [0, 0.1, 0.3]
+}
+
+# Create base model
+xgb = XGBClassifier(
+    reg_alpha=0.1, # mild L1 regularization
+    reg_lambda=1.0, # slightly stronger L2
+    random_state=42,
+    eval_metric='mlogloss' )
+
+# Set up GridSearchCV to train multiple xgb models using combinations from params grid
+grid = GridSearchCV(
+    xgb,
+    params,
+    cv=5,
+    scoring='accuracy',
+    n_jobs=-1)
+
+# Fit GridSearchCV
+grid.fit(x_train, y_train)
+
+# Best parameters & best model
+print("Best Parameters:", grid.best_params_)
+best_xgb = grid.best_estimator_
+
+rf = RandomForestClassifier(n_estimators=200, random_state=42)
+svm = SVC(kernel='rbf', probability=True, random_state=42)
+
+voting = VotingClassifier(
+    estimators=[('xgb', best_xgb), ('rf', rf), ('svm', svm)],
+    voting='soft'
+)
+
+voting.fit(x_train, y_train)
+y_pred_vote = voting.predict(x_test)
+
+print("Voting Accuracy:", accuracy_score(y_test, y_pred_vote))
+print("Voting F1-Macro:", f1_score(y_test, y_pred_vote, average='macro'))
+
+print("\n=== Classification Report ===")
+print(classification_report(y_test, y_pred_vote, target_names=['Normal', 'Moderate', 'Critical']))
+
+print("\n=== Confusion Matrix ===")
+print(confusion_matrix(y_test, y_pred_vote))
+"""

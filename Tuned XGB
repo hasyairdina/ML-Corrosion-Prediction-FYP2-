@@ -1,0 +1,81 @@
+# from xgboost import XGBClassifier
+# from sklearn.metrics import accuracy_score, classification_report, confusion_matrix, f1_score
+# from sklearn.model_selection import GridSearchCV
+# from sklearn.ensemble import VotingClassifier
+# from sklearn.ensemble import RandomForestClassifier
+# from sklearn.svm import SVC
+#
+# # Define the parameter grid for tuning
+# params = {
+#     'max_depth': [4, 6, 8],
+#     'learning_rate': [0.05, 0.1, 0.2],
+#     'n_estimators': [100, 200, 300],
+#     'subsample': [0.7, 0.8, 1.0],
+#     'colsample_bytree': [0.7, 0.8, 1.0],
+#     'gamma': [0, 0.1, 0.3]
+# }
+#
+# # Create base model
+# xgb = XGBClassifier(
+#     reg_alpha=0.1, # mild L1 regularization
+#     reg_lambda=1.0, # slightly stronger L2
+#     random_state=42,
+#     eval_metric='mlogloss' )
+#
+# # Set up GridSearchCV to train multiple xgb models using combinations from params grid
+# grid = GridSearchCV(
+#     xgb,
+#     params,
+#     cv=5,
+#     scoring='accuracy',
+#     n_jobs=-1)
+#
+# # Fit GridSearchCV
+# grid.fit(x_train, y_train)
+#
+# # Best parameters & best model
+# print("Best Parameters:", grid.best_params_)
+# best_xgb = grid.best_estimator_
+#
+# # Predict using the best model
+# y_pred = best_xgb.predict(x_test)
+#
+# print(f"Accuracy: {accuracy_score(y_test, y_pred):.2f}")
+# print("Macro F1:", f1_score(y_test, y_pred, average='macro'))
+#
+# print("\nClassification Report:")
+# print(classification_report(y_test, y_pred))
+#
+# print("\nConfusion Matrix:")
+# print(confusion_matrix(y_test, y_pred))
+
+---------------------------------------------------------------------------------------------------------
+
+# from sklearn.model_selection import cross_val_score
+#
+# # Test with the base XGB model (before tuning)
+# print("=== Base XGB Model Performance ===")
+# cv_accuracy_base = cross_val_score(xgb, input_data, output_data, cv=5, scoring='accuracy')
+# cv_f1_base = cross_val_score(xgb, input_data, output_data, cv=5, scoring='f1_macro')
+#
+# print("CV Accuracy scores:", cv_accuracy_base)
+# print("Mean CV Accuracy:", cv_accuracy_base.mean())
+# print("CV F1-Macro scores:", cv_f1_base)
+# print("Mean CV F1 (Macro):", cv_f1_base.mean())
+# print()
+#
+# # Test with the tuned best_xgb model
+# print("=== Tuned XGB Model Performance ===")
+# cv_accuracy_tuned = cross_val_score(best_xgb, input_data, output_data, cv=5, scoring='accuracy')
+# cv_f1_tuned = cross_val_score(best_xgb, input_data, output_data, cv=5, scoring='f1_macro')
+#
+# print("CV Accuracy scores:", cv_accuracy_tuned)
+# print("Mean CV Accuracy:", cv_accuracy_tuned.mean())
+# print("CV F1-Macro scores:", cv_f1_tuned)
+# print("Mean CV F1 (Macro):", cv_f1_tuned.mean())
+# print()
+#
+# # Compare improvement from hyperparameter tuning
+# print("=== Tuning Improvement ===")
+# print(f"Accuracy: {cv_accuracy_base.mean():.3f} → {cv_accuracy_tuned.mean():.3f}")
+# print(f"F1-Macro: {cv_f1_base.mean():.3f} → {cv_f1_tuned.mean():.3f}")
